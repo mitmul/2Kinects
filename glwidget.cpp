@@ -1,12 +1,14 @@
 #include "glwidget.h"
 #include "QtOpenGL"
 
+#define SHOWSCALE 8192.0
+
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent),
       util(new Utilities())
 {
     xRot = 0;
-    yRot = 0;
+    yRot = 180 * 16;
     zRot = 0;
 
     xOrigin = 0.0;
@@ -77,6 +79,7 @@ void GLWidget::setZRotation(int angle)
 void GLWidget::initializeGL()
 {
     glClearColor(0.0, 0.0, 0.0, 1.0);
+    glOrtho(-SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
@@ -88,6 +91,8 @@ void GLWidget::resizeGL(int width,int height)
 
     //現在選択されている行列に単位行列をロードする
     glLoadIdentity();
+
+    glOrtho(-SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE);
 }
 
 void GLWidget::drawAxis()
@@ -102,28 +107,28 @@ void GLWidget::drawAxis()
         //X軸
         glColor3f(1.0, 0.0, 0.0);
         glBegin(GL_LINES);
-        glVertex3f(-1.0, 0.0, 0.0);
-        glVertex3f(1.0, 0.0, 0.0);
-        glVertex3f(0.9, 0.1, 0.0);
-        glVertex3f(0.9, -0.1, 0.0);
+        glVertex3f(-SHOWSCALE, 0.0, 0.0);
+        glVertex3f(SHOWSCALE, 0.0, 0.0);
+        glVertex3f(SHOWSCALE * 0.9, SHOWSCALE * 0.1, 0.0);
+        glVertex3f(SHOWSCALE * 0.9, -SHOWSCALE * 0.1, 0.0);
         glEnd();
 
         //Y軸
         glColor3f(0.0, 1.0, 0.0);
         glBegin(GL_LINES);
-        glVertex3f(0.0, -1.0, 0.0);
-        glVertex3f(0.0, 1.0, 0.0);
-        glVertex3f(-0.1, 0.9, 0.0);
-        glVertex3f(0.1, 0.9, 0.0);
+        glVertex3f(0.0, -SHOWSCALE, 0.0);
+        glVertex3f(0.0, SHOWSCALE, 0.0);
+        glVertex3f(-SHOWSCALE * 0.1, SHOWSCALE * 0.9, 0.0);
+        glVertex3f(SHOWSCALE * 0.1, SHOWSCALE * 0.9, 0.0);
         glEnd();
 
         //Z軸
         glColor3f(0.0, 0.0, 1.0);
         glBegin(GL_LINES);
-        glVertex3f(0.0, 0.0, -1.0);
-        glVertex3f(0.0, 0.0, 1.0);
-        glVertex3f(0.0, -0.1, 0.9);
-        glVertex3f(0.0, 0.1, 0.9);
+        glVertex3f(0.0, 0.0, -SHOWSCALE);
+        glVertex3f(0.0, 0.0, SHOWSCALE);
+        glVertex3f(0.0, -SHOWSCALE * 0.1, SHOWSCALE * 0.9);
+        glVertex3f(0.0, SHOWSCALE * 0.1, SHOWSCALE * 0.9);
         glEnd();
     }
 }
@@ -161,7 +166,7 @@ void GLWidget::drawObject()
     if(!state_Mesh && !vertex.empty() && !face.empty())
     {
         Mat normVertex;
-        normalize(vertex, normVertex, -1.0, 1.0, NORM_MINMAX);
+        normalize(vertex, normVertex, -SHOWSCALE, SHOWSCALE, NORM_MINMAX);
 
         for(int i = 0; i < face.rows; ++i)
         {
@@ -193,7 +198,7 @@ void GLWidget::drawObject()
     if(state_Mesh && !vertex.empty() && !face.empty())
     {
         Mat normVertex;
-        normalize(vertex, normVertex, -1.0, 1.0, NORM_MINMAX);
+        normalize(vertex, normVertex, -SHOWSCALE, SHOWSCALE, NORM_MINMAX);
 
         //ライティングを一時的にオフに
         glDisable(GL_LIGHTING);
@@ -265,7 +270,7 @@ void GLWidget::drawObject()
         glDisable(GL_LIGHT1);
 
         // 点を描画
-        glPointSize(5.0);
+        glPointSize(pointSize);
 
         glBegin(GL_POINTS);
         for(int i = 0; i < (int)points.size(); ++i)
@@ -274,9 +279,19 @@ void GLWidget::drawObject()
             if(!colors.empty())
                 glColor3d(colors.at(i).x, colors.at(i).y, colors.at(i).z);
             else
-                glColor3f(1.0, 1.0, 0.0);
+                glColor3f(1.0, 1.0, 1.0);
 
-            glVertex3d(points.at(i).x, points.at(i).y, points.at(i).z);
+            double x = points.at(i).x;
+            double y = points.at(i).y;
+            double z = points.at(i).z;
+
+            if(x != -SHOWSCALE && x != SHOWSCALE
+                    && y != -SHOWSCALE && y != SHOWSCALE
+                    && z != -SHOWSCALE && z != SHOWSCALE)
+            {
+
+                glVertex3d(x, y, z);
+            }
         }
         glEnd();
 
@@ -288,9 +303,6 @@ void GLWidget::drawObject()
         Mat points64;
         rectPoints.convertTo(points64, CV_64F);
 
-        Mat normPoints;
-        normalize(points64, normPoints, -1.0, 1.0, NORM_MINMAX);
-
         //ライティングを一時的にオフに
         glDisable(GL_LIGHTING);
         glDisable(GL_LIGHT0);
@@ -300,9 +312,9 @@ void GLWidget::drawObject()
         glPointSize(pointSize);
 
         glBegin(GL_POINTS);
-        for(int i = 0; i < normPoints.rows; ++i)
+        for(int i = 0; i < points64.rows; ++i)
         {
-            for(int j = 0; j < normPoints.cols; ++j)
+            for(int j = 0; j < points64.cols; ++j)
             {
                 // デフォルトで黄
                 if(!rectColors.empty())
@@ -330,12 +342,11 @@ void GLWidget::drawObject()
                 }
 
                 // zは値が増えるほど近い(kinect入力)
-                if(normPoints.at<double>(i, j) != 1.0
-                        && normPoints.at<double>(i, j) > ((double)farThresh / 100.0) * 2.0 - 1.0)
+                if(points64.at<double>(i, j) != 0.0)
                 {
-                    glVertex3d(((double)j / (double)normPoints.cols) * 2.0 - 1.0,
-                               (-(double)i / (double)normPoints.rows) * 2.0 + 1.0,
-                               normPoints.at<double>(i, j));
+                    glVertex3d(-SHOWSCALE + (double)j * 2.0 * SHOWSCALE / (double)points64.cols,
+                               -(-SHOWSCALE + (double)i * 2.0 * SHOWSCALE / (double)points64.rows),
+                               points64.at<double>(i, j) * 2.0 - SHOWSCALE);
                 }
             }
         }
@@ -391,7 +402,7 @@ void GLWidget::paintGL()
     glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
 
     // 正射影
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    glOrtho(-SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE, -SHOWSCALE, SHOWSCALE);
 
     // 透視投影
     //gluPerspective(30.0, (double)this->width() / (double)this->height(), 1.0, 100.0);
@@ -434,24 +445,24 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 void GLWidget::keyPressEvent(QKeyEvent *e)
 {
     // 移動量
-    double shiftAmount = 0.01;
+    double shiftAmount = 0.1;
 
     if(e->key() == Qt::Key_X)
     {
         setXRotation(0);
-        setYRotation(-90  *16);
+        setYRotation(-90 * 16);
         setZRotation(0);
     }
     if(e->key() == Qt::Key_Y)
     {
-        setXRotation(-90  *16);
+        setXRotation(-90 * 16);
         setYRotation(0);
         setZRotation(0);
     }
     if(e->key() == Qt::Key_Z)
     {
         setXRotation(0);
-        setYRotation(0);
+        setYRotation(180 * 16);
         setZRotation(0);
     }
     if(e->key() == Qt::Key_Left)
@@ -466,19 +477,19 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         glScale = glScale + shiftAmount;
     if(e->key() == Qt::Key_S)
         glScale = glScale - shiftAmount;
+    if(e->key() == Qt::Key_F)
+    {
+        if(!this->isFullScreen())
+            this->showFullScreen();
+        else
+            this->showNormal();
+    }
     if(e->key() == Qt::Key_A)
     {
         if(state_Axis)
             state_Axis = false;
         else
             state_Axis = true;
-    }
-    if(e->key() == Qt::Key_B)
-    {
-        if(state_Bone)
-            state_Bone = false;
-        else
-            state_Bone = true;
     }
     if(e->key() == Qt::Key_L)
     {

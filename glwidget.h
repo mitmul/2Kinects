@@ -22,10 +22,10 @@ public:
     Mat getFaceMat();
     void setBones(const vector<Point3d> &_points);
     void setPoints(const vector<Point3d> &_points);
+    void setColors(const vector<Point3d> &_colors);
     void setRectPoints(const Mat &_rectPoints);
     void setRectColors(const Mat &_rectColors);
     void pushPoint(const Point3d &_point);
-    void setColors(const vector<Point3d> &_colors);
     void setFarThresh(int value);
     void setBGPicture(Mat &_bg);
 

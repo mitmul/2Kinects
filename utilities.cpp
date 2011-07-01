@@ -197,6 +197,7 @@ void Utilities::saveCSVFromMat(const QString fileName, const Mat src)
 {
     Mat dst;
     dst.create(src.size(), CV_64FC(src.channels()));
+    src.convertTo(dst, CV_64F);
 
     QFile fp(fileName);
     if(fp.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -221,5 +222,101 @@ void Utilities::saveCSVFromMat(const QString fileName, const Mat src)
             st << "\n";
         }
         fp.close();
+    }
+}
+
+vector<Point3d> Utilities::getVecsFromMat(const Mat src)
+{
+    vector<Point3d> vecs;
+
+    if(src.type() == CV_64FC1)
+    {
+        double f = 526.37013657;
+        double cx = 313.68782938;
+        double cy = 259.01834898;
+
+        double x = -10000.0;
+        double y = -10000.0;
+        double xStep = 20000.0 / (double)src.cols;
+        double yStep = 20000.0 / (double)src.rows;
+
+        for(int i = 0; i < src.rows; ++i)
+        {
+            for(int j = 0; j < src.cols; ++j)
+            {
+                // Kinectのデプス最大値は8192
+                double limtDepth = 8192.0;
+
+                double val = src.at<double>(i, j);
+
+                Point3d vec;
+                vec.x = (j - cx) * val / f;
+                vec.y = -((i - cy) * val / f);
+                vec.z = val;
+
+                vecs.push_back(vec);
+            }
+        }
+    }
+
+    if(src.type() == CV_8UC3)
+    {
+        double x = -1.0;
+        double y = -1.0;
+        double xStep = 2.0 / (double)src.cols;
+        double yStep = 2.0 / (double)src.rows;
+
+        for(int i = 0; i < src.rows; ++i)
+        {
+            for(int j = 0; j < src.cols; ++j)
+            {
+                Point3d vec;
+                vec.x = (double)src.at<Vec3b>(i, j)(2) / 255.0;
+                vec.y = (double)src.at<Vec3b>(i, j)(1) / 255.0;
+                vec.z = (double)src.at<Vec3b>(i, j)(0) / 255.0;
+
+                vecs.push_back(vec);
+            }
+        }
+    }
+
+    return vecs;
+}
+
+void Utilities::rotatePoint3dVecsAroundY(const double rotate, vector<Point3d>& vecs)
+{
+    for(int i = 0; i < vecs.size(); ++i)
+    {
+        double x = vecs.at(i).x;
+        double z = vecs.at(i).z;
+
+        vecs.at(i).x = z * sin(rotate) + x * cos(rotate);
+        vecs.at(i).z = z * cos(rotate) - x * sin(rotate);
+    }
+}
+
+vector<Point3d> Utilities::synthVecs(const vector<Point3d> vecA, const vector<Point3d> vecB)
+{
+    vector<Point3d> vecAB;
+
+    for(int i = 0; i < vecA.size(); ++i)
+    {
+        vecAB.push_back(vecA.at(i));
+    }
+    for(int i = 0; i < vecB.size(); ++i)
+    {
+        vecAB.push_back(vecB.at(i));
+    }
+
+    return vecAB;
+}
+
+void Utilities::moveVecs(const Point3d shift, vector<Point3d> &vecs)
+{
+    for(int i = 0; i < vecs.size(); ++i)
+    {
+        vecs.at(i).x += shift.x;
+        vecs.at(i).y += shift.y;
+        vecs.at(i).z += shift.z;
     }
 }

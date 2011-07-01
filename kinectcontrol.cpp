@@ -30,7 +30,7 @@ vector<float> KinectControl::getDepthHistgram(const DepthGenerator& depth, const
     {
         for(int i = 1; i < MAX_DEPTH; ++i)
         {
-            depthHist[i] = (unsigned int)(256 * (1.0f - (depthHist[i] / points)));
+            depthHist[i] = (ushort)(pow(2.0, 13.0) * (1.0f - (depthHist[i] / points)));
         }
     }
 
@@ -92,7 +92,7 @@ KinectControl::KinectControl(bool imageOrIR)
     // 登録されたデバイスを取得する
     qDebug() << "xn::Context::EnumerateExistingNodes ... ";
     NodeInfoList nodeList;
-    rc = context.EnumerateExistingNodes( nodeList );
+    rc = context.EnumerateExistingNodes(nodeList);
     CHECK_RC(rc, "EnumerateExistingNodes");
     qDebug() << "Success";
 
@@ -174,21 +174,25 @@ void KinectControl::GetDepthColor(vector<Mat>& depthMat, vector<Mat>& colorMat)
             k.ir.GetMetaData(irMD);
 
             // IR画像
-            Mat irImage(irMD.YRes(), irMD.XRes(), CV_16SC1, irMD.WritableData());
-            Mat irImage8;
-            irImage.convertTo(irImage8, CV_8U);
-            imshow(k.ir.GetName(), irImage8);
-            colorMat.push_back(irImage8);
+            Mat irImage(irMD.YRes(), irMD.XRes(), CV_16UC1, irMD.WritableData());
+            irImage.convertTo(irImage, CV_8U);
+            colorMat.push_back(irImage);
         }
 
         DepthMetaData depthMD;
         k.depth.GetMetaData(depthMD);
 
+#if 1
+        // デプス画像
+        Mat depthImage(OUTPUT_MODE.nYRes, OUTPUT_MODE.nXRes, CV_16UC1, (ushort*)depthMD.Data());
+        depthImage.convertTo(depthImage, CV_64F);
+#else
+        // デプス画像
+        Mat depthImage(OUTPUT_MODE.nYRes, OUTPUT_MODE.nXRes, CV_64FC1);
+
         // デプスマップの作成
         vector<float> depthHist = getDepthHistgram(k.depth, depthMD);
 
-        // デプス画像
-        Mat depthImage(OUTPUT_MODE.nYRes, OUTPUT_MODE.nXRes, CV_64FC1);
         for(XnUInt y = 0; y < OUTPUT_MODE.nYRes; ++y)
         {
             for(XnUInt x = 0; x < OUTPUT_MODE.nXRes; ++x)
@@ -204,7 +208,23 @@ void KinectControl::GetDepthColor(vector<Mat>& depthMat, vector<Mat>& colorMat)
                 }
             }
         }
+#endif
         depthMat.push_back(depthImage);
+
+        /*
+        double min, max;
+        minMaxLoc(depthImage, &min, &max);
+
+        fprintf(stderr, "%lf,%lf\t", min, max);
+        */
+
+        /*
+        normalize(depthImage, depthImage, 0.0, 255.0, NORM_MINMAX);
+        depthImage.convertTo(depthImage, CV_8U);
+        QString imageName;
+        imageName.sprintf("%s.png", k.depth.GetName());
+        imwrite(imageName.toStdString(), depthImage);
+        */
     }
 }
 

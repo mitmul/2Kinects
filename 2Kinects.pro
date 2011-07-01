@@ -6,7 +6,7 @@
 
 QT       += core gui opengl
 
-TARGET = Silhouetter
+TARGET = 2Kinects
 TEMPLATE = app
 
 
@@ -26,25 +26,27 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 INCLUDEPATH += /usr/include/ni \
-    /Applications/OpenCV/include \
-    /Applications/OpenCV/include/opencv \
-    /Applications/OpenCV/include/opencv2
+    /usr/local/include \
+    /usr/local/include/opencv \
+    /usr/local/include/opencv2
 
 LIBS += -L/usr/lib \
     -lnimCodecs \
     -lnimMockNodes \
     -lnimRecorder \
     -lOpenNI \
-    -L/Applications/OpenCV/lib \
-    -lopencv_calib3d \
-    -lopencv_contrib \
-    -lopencv_core \
-    -lopencv_features2d \
-    -lopencv_flann \
-    -lopencv_gpu \
-    -lopencv_highgui \
-    -lopencv_imgproc \
-    -lopencv_legacy \
-    -lopencv_ml \
-    -lopencv_objdetect \
-    -lopencv_video
+    -L/usr/local/lib \
+    -lopencv_gpu.2.3.1 \
+    -lopencv_video.2.3.1 \
+    -lopencv_objdetect.2.3.1 \
+    -lopencv_ml.2.3.1 \
+    -lopencv_legacy.2.3.1 \
+    -lopencv_imgproc.2.3.1 \
+    -lopencv_highgui.2.3.1 \
+    -lopencv_flann.2.3.1 \
+    -lopencv_features2d.2.3.1 \
+    -lopencv_core.2.3.1 \
+    -lopencv_contrib.2.3.1 \
+    -lopencv_calib3d.2.3.1
+
+CONFIG -= app_bundle
