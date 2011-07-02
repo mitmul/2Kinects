@@ -465,18 +465,41 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
         setYRotation(180 * 16);
         setZRotation(0);
     }
+
+    if(e->modifiers() & Qt::ShiftModifier)
+    {
+        if(e->key() == Qt::Key_Left)
+            xOrigin = xOrigin - shiftAmount / 10;
+        if(e->key() == Qt::Key_Up)
+            yOrigin = yOrigin + shiftAmount / 10;
+        if(e->key() == Qt::Key_Right)
+            xOrigin = xOrigin + shiftAmount / 10;
+        if(e->key() == Qt::Key_Down)
+            yOrigin = yOrigin - shiftAmount / 10;
+        if(e->key() == Qt::Key_B)
+            glScale = glScale + shiftAmount / 10;
+        if(e->key() == Qt::Key_S)
+            glScale = glScale - shiftAmount / 10;
+    }
+
     if(e->key() == Qt::Key_Left)
         xOrigin = xOrigin - shiftAmount;
+
     if(e->key() == Qt::Key_Up)
         yOrigin = yOrigin + shiftAmount;
+
     if(e->key() == Qt::Key_Right)
         xOrigin = xOrigin + shiftAmount;
+
     if(e->key() == Qt::Key_Down)
         yOrigin = yOrigin - shiftAmount;
+
     if(e->key() == Qt::Key_B)
         glScale = glScale + shiftAmount;
+
     if(e->key() == Qt::Key_S)
         glScale = glScale - shiftAmount;
+
     if(e->key() == Qt::Key_F)
     {
         if(!this->isFullScreen())
@@ -665,4 +688,9 @@ void GLWidget::setBGPicture(Mat &_bg)
 void GLWidget::setPointSize(double size)
 {
     this->pointSize = size;
+}
+
+int GLWidget::heightForWidth(int w)
+{
+    return w;
 }

@@ -231,9 +231,9 @@ vector<Point3d> Utilities::getVecsFromMat(const Mat src)
 
     if(src.type() == CV_64FC1)
     {
-        double f = 526.37013657;
-        double cx = 313.68782938;
-        double cy = 259.01834898;
+        double f = 607.779;
+        double cx = 315.549;
+        double cy = 248.786;
 
         double x = -10000.0;
         double y = -10000.0;
@@ -318,5 +318,19 @@ void Utilities::moveVecs(const Point3d shift, vector<Point3d> &vecs)
         vecs.at(i).x += shift.x;
         vecs.at(i).y += shift.y;
         vecs.at(i).z += shift.z;
+    }
+}
+
+void Utilities::saveCSVFromPoint3fVector(const QString fileName, const vector<Point3f> vecs)
+{
+    QFile fp(fileName);
+    if(fp.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream st(&fp);
+        for(int i = 0; i < (int)vecs.size(); ++i)
+        {
+            st << vecs.at(i).x << "," << vecs.at(i).y << "," << vecs.at(i).z << "\n";
+        }
+        fp.close();
     }
 }

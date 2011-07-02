@@ -67,10 +67,11 @@ void MainWindow::showGL(vector<Mat> depth, vector<Mat> color)
 
         glView.at(0) = new GLWidget();
         glView.at(0)->setGeometry(0, 10, 500, 500);
-        glView.at(0)->setWindowTitle("Synthesized");
+        glView.at(0)->setMinimumSize(500, 500);
         QSizePolicy sp;
         sp.setHeightForWidth(true);
         glView.at(0)->setSizePolicy(sp);
+        glView.at(0)->setWindowTitle("Synthesized");
         glView.at(0)->show();
     }
 
@@ -78,14 +79,14 @@ void MainWindow::showGL(vector<Mat> depth, vector<Mat> color)
     if(glView.size() == 1 && kinectTh != NULL)
     {
         // 一つ目のデプスだけ90度回して結合
-        vector<Point3d> vecsA = util->getVecsFromMat(depth.at(0));
+        vector<Point3d> vecsA = util->getVecsFromMat(depth.at(1));
         util->rotatePoint3dVecsAroundY(-M_PI / 2.0, vecsA);
         util->moveVecs(Point3d(x, y, z), vecsA);
-        vector<Point3d> vecsB = util->getVecsFromMat(depth.at(1));
+        vector<Point3d> vecsB = util->getVecsFromMat(depth.at(0));
         vector<Point3d> vecsAB = util->synthVecs(vecsA, vecsB);
 
-        vector<Point3d> colorA = util->getVecsFromMat(color.at(0));
-        vector<Point3d> colorB = util->getVecsFromMat(color.at(1));
+        vector<Point3d> colorA = util->getVecsFromMat(color.at(1));
+        vector<Point3d> colorB = util->getVecsFromMat(color.at(0));
         vector<Point3d> colorAB = util->synthVecs(colorA, colorB);
 
         glView.at(0)->setPoints(vecsAB);
@@ -145,8 +146,8 @@ void MainWindow::on_pushButton_Calibration_clicked()
 
     if(!fileNames.empty())
     {
-        int patternRow = 7;
-        int patternCol = 10;
+        int patternRow = 10;
+        int patternCol = 7;
         float chessSize = 24.0;
 
         // チェスパターンの点座標
@@ -164,6 +165,7 @@ void MainWindow::on_pushButton_Calibration_clicked()
                 OnAImage.push_back(point);
             }
         }
+
         for(int i = 0; i < fileNames.size(); ++i)
         {
             objectPoints.push_back(OnAImage);
@@ -171,12 +173,13 @@ void MainWindow::on_pushButton_Calibration_clicked()
 
         // 画像上の格子点
         vector<vector<Point2f> > imagePoints;
+        vector<Point2f> corners;
         for(int i = 0; i < fileNames.size(); ++i)
         {
             QString fname = fileNames.at(i);
             Mat image = imread(fname.toStdString());
 
-            vector<Point2f> corners;
+            corners.clear();
 
             if(findChessboardCorners(image, Size(7, 10), corners) == true)
             {
@@ -196,7 +199,7 @@ void MainWindow::on_pushButton_Calibration_clicked()
         }
 
         // 内部パラメータ
-        Mat cameraMatrix(3, 3, CV_64FC1);
+        Mat cameraMatrix;
 
         // 歪み係数
         Mat distCoeffs;
@@ -210,8 +213,11 @@ void MainWindow::on_pushButton_Calibration_clicked()
         // キャリブレーション
         double reproError = calibrateCamera(objectPoints, imagePoints, Size(640, 480), cameraMatrix, distCoeffs, rvecs, tvecs, CV_CALIB_RATIONAL_MODEL);
 
-        util->saveCSVFromMat("cameraMatrix.csv", cameraMatrix);
-        util->saveCSVFromMat("distCoeffs.csv", distCoeffs);
+        // ウインドウを消す
+        destroyWindow("corner detected");
+
+        util->saveCSVFromMat("ir1-cameraMatrix.csv", cameraMatrix);
+        util->saveCSVFromMat("ir1-distCoeffs.csv", distCoeffs);
 
         qDebug() << "Reprojection error:" << reproError;
     }

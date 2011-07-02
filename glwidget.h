@@ -14,8 +14,9 @@ class GLWidget : public QGLWidget
 public:
     explicit GLWidget(QWidget *parent = 0);
     QPixmap getGLViewAsPixmap();
-    Mat getGLViewAsMat();
+    int heightForWidth(int w);
 
+    Mat getGLViewAsMat();
     void setVertexMat(const Mat &_vertex);
     void setFaceMat(const Mat &_face);
     Mat getVertexMat();

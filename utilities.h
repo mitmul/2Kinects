@@ -43,6 +43,8 @@ public:
         }
     }
 
+    void saveCSVFromPoint3fVector(const QString fileName, const vector<Point3f> vecs);
+
     void saveCSVFromMat(const QString fileName, const Mat src);
     vector<Point3d> getVecsFromMat(const Mat src);
     void rotatePoint3dVecsAroundY(const double rotate, vector<Point3d>& vecs);
