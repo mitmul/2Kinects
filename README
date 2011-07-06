@@ -1,0 +1,5 @@
+複数台Kinectについては以下を参考にしました。
+https://github.com/kaorun55/KinectSensorProgramming/blob/master/apply/cpp/MultipleKinect/main.cpp
+
+IR画像取得については
+http://nma.web.nitech.ac.jp/fukushima/openni/NICVSampleIR.cpp
