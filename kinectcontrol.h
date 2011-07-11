@@ -14,11 +14,11 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define CHECK_RC(nRetVal, what)                                            \
-    if (nRetVal != XN_STATUS_OK)                                       \
-{                                                                  \
-    qDebug("%s failed: %s\n", what, xnGetStatusString(nRetVal));   \
-    }
+#define CHECK_RC(nRetVal, what)                                         \
+    if (nRetVal != XN_STATUS_OK)                                        \
+{                                                                       \
+    qDebug("%s failed: %s\n", what, xnGetStatusString(nRetVal));        \
+}
 
 using namespace std;
 using namespace cv;

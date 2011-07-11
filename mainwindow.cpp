@@ -46,6 +46,8 @@ void MainWindow::showGL(vector<Mat> depth, vector<Mat> color)
             winTitle.sprintf("Kinect %d", i);
             glView.at(i)->setWindowTitle(winTitle);
             glView.at(i)->show();
+
+            qDebug() << i;
         }
     }
 
@@ -76,7 +78,7 @@ void MainWindow::showGL(vector<Mat> depth, vector<Mat> color)
     }
 
     // 1 GLView, Kiect Thread run
-    if(glView.size() == 1 && kinectTh != NULL)
+    if(ui->checkBox_Synthesize->isChecked() && glView.size() == 1 && kinectTh != NULL)
     {
         // 一つ目のデプスだけ90度回して結合
         vector<Point3d> vecsA = util->getVecsFromMat(depth.at(1));
